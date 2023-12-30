@@ -13,47 +13,35 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,json5,yaml,yml,css,scss,md}": [
+      "oxlint",
       "prettier --write"
     ]
   },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
-    "lint": "eslint src",
+    "lint": "oxlint -D pedantic -D correctness -D nursery -D style -D restriction -A no-undef -A eqeqeq -A filename-case -A no-null -A no-console",
     "test": "vitest",
     "typecheck": "tsc --noEmit --project tsconfig.json",
     "prepare": "simple-git-hooks"
   },
+  "peerDependencies": {
+    "eslint": "^8 || ^9"
+  },
   "devDependencies": {
-    "@beequeue/eslint-plugin": "4.0.0",
     "@tsconfig/node20": "20.1.2",
     "@tsconfig/strictest": "2.0.2",
+    "@types/eslint": "8.56.0",
     "@types/node": "20.10.6",
     "dotenv": "16.3.1",
     "eslint": "8.56.0",
     "eslint-define-config": "2.1.0",
     "lint-staged": "15.2.0",
+    "oxlint": "0.0.22",
     "prettier": "3.1.1",
     "simple-git-hooks": "2.9.0",
     "tsup": "8.0.1",
     "typescript": "5.3.3",
     "vitest": "1.1.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "array-includes": "npm:@nolyfill/array-includes@latest",
-      "array.prototype.flat": "npm:@nolyfill/array.prototype.flat@latest",
-      "array.prototype.flatmap": "npm:@nolyfill/array.prototype.flatmap@latest",
-      "array.prototype.tosorted": "npm:@nolyfill/array.prototype.tosorted@latest",
-      "hasown": "npm:@nolyfill/hasown@latest",
-      "object.assign": "npm:@nolyfill/object.assign@latest",
-      "object.entries": "npm:@nolyfill/object.entries@latest",
-      "object.fromentries": "npm:@nolyfill/object.fromentries@latest",
-      "object.hasown": "npm:@nolyfill/object.hasown@latest",
-      "object.values": "npm:@nolyfill/object.values@latest",
-      "string.prototype.matchall": "npm:@nolyfill/string.prototype.matchall@latest",
-      "es-iterator-helpers": "npm:@nolyfill/es-iterator-helpers@latest",
-      "has": "npm:@nolyfill/has@latest"
-    }
   }
 }

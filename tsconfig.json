@@ -6,7 +6,7 @@
     "sourceMap": true,
 
     // Modules
-    "module": "es2022",
+    "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "esModuleInterop": true,
@@ -27,6 +27,6 @@
     "types": ["node"]
   },
 
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "./def.d.ts"],
   "exclude": ["node_modules", "dist", "copy.ts"]
 }

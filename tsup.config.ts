@@ -1,12 +1,18 @@
 import { execSync } from "node:child_process"
 
 import { defineConfig } from "tsup"
+import { name, version } from "./package.json"
 
 const gitSha = execSync("git rev-parse --short HEAD").toString().trim()
 
 export default defineConfig({
-  entry: ["src/index.ts"],
+  entry: ["src/**/*.ts"],
   outDir: "dist",
+
+  define: {
+    PKG_NAME: JSON.stringify(name),
+    PKG_VERSION: JSON.stringify(version),
+  },
 
   env: {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -26,7 +32,6 @@ export default defineConfig({
     }
   },
 
-  sourcemap: true,
   dts: true,
   clean: true,
   minify: true,

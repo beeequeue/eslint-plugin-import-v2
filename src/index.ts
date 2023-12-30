@@ -2,7 +2,7 @@ import { ESLint } from "eslint"
 import { noDefaultExport } from "./rules/no-default-export"
 import { noUndefinedDependencies } from "./rules/no-undefined-dependencies"
 
-export default {
+const plugin = {
   meta: {
     name: PKG_NAME,
     version: PKG_VERSION,
@@ -22,3 +22,7 @@ export default {
     },
   },
 } satisfies ESLint.Plugin
+
+Object.assign(plugin, { configs: { recommended: { plugins: { import: plugin } } } })
+
+export default plugin

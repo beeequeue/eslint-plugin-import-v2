@@ -1,4 +1,5 @@
-import { type ESLint } from "eslint"
+import { ESLint } from "eslint"
+import { noDefaultExport } from "./rules/no-default-export"
 
 export default {
   meta: {
@@ -6,5 +7,15 @@ export default {
     version: PKG_VERSION,
   },
 
-  environments: {},
+  rules: {
+    "no-default-export": noDefaultExport as never,
+  },
+
+  configs: {
+    recommended: {
+      rules: {
+        "no-default-export": "error",
+      },
+    },
+  },
 } satisfies ESLint.Plugin

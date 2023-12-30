@@ -6,7 +6,7 @@ import { name, version } from "./package.json"
 const gitSha = execSync("git rev-parse --short HEAD").toString().trim()
 
 export default defineConfig({
-  entry: ["src/**/*.ts"],
+  entry: ["src/**/*.ts", "!**/*.test.*", "src/test-utils.ts"],
   outDir: "dist",
 
   define: {
@@ -32,6 +32,7 @@ export default defineConfig({
     }
   },
 
+  bundle: false,
   dts: true,
   clean: true,
   minify: true,

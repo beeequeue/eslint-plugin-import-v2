@@ -1,6 +1,6 @@
 import { ESLint } from "eslint"
-import { noDefaultExport } from "./rules/no-default-export"
-import { noUndefinedDependencies } from "./rules/no-undefined-dependencies"
+import { noDefaultExport } from "./rules/no-default-export.js"
+import { noUndefinedDependencies } from "./rules/no-undefined-dependencies.js"
 
 const plugin = {
   meta: {

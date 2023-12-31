@@ -1,6 +1,6 @@
 import dedent from "ts-dedent"
 
-import { ruleTester } from "../test-utils"
+import { ruleTester } from "../test-utils.js"
 import { noDefaultExport } from "./no-default-export.js"
 
 const ruleWithDefaults = { ...noDefaultExport, defaultOptions: [] }

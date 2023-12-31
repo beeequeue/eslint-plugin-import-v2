@@ -1,6 +1,6 @@
 import dedent from "ts-dedent"
 
-import { ruleTester } from "../test-utils"
+import { ruleTester } from "../test-utils.js"
 import { noUndefinedDependencies } from "./no-undefined-dependencies.js"
 
 ruleTester.run("no-undefined-dependencies", noUndefinedDependencies, {

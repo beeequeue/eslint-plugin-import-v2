@@ -41,7 +41,6 @@
   "dependencies": {
     "@manypkg/get-packages": "2.2.0",
     "memoize": "10.0.0",
-    "p-memoize": "7.1.1",
     "picomatch": "3.0.1"
   },
   "devDependencies": {

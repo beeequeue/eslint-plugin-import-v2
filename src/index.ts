@@ -15,14 +15,24 @@ const plugin = {
 
   configs: {
     recommended: {
+      plugins: {},
       rules: {
-        "no-default-export": "error",
-        "no-undefined-dependencies": "error",
+        "import/no-default-export": "error",
+        "import/no-undefined-dependencies": "error",
+      },
+    },
+    all: {
+      plugins: {},
+      rules: {
+        "import/no-default-export": "error",
+        "import/no-undefined-dependencies": "error",
       },
     },
   },
 } satisfies ESLint.Plugin
 
-Object.assign(plugin, { configs: { recommended: { plugins: { import: plugin } } } })
+plugin.configs.recommended.plugins = { import: plugin }
+plugin.configs.all.plugins = { import: plugin }
 
+// eslint-disable-next-line import/no-default-export
 export default plugin

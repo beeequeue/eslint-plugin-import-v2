@@ -1,28 +1,41 @@
-import Picomatch from "picomatch"
+import { type Rule } from "eslint"
 import memoize from "memoize"
-import pMemoize from "p-memoize"
-import { getPackages } from "@manypkg/get-packages"
-import { Rule } from "eslint"
+import Picomatch from "picomatch"
+import { getPackagesSync } from "@manypkg/get-packages"
+import type { ImportDeclaration } from "estree"
+
+const onlyImportsTypes = (node: ImportDeclaration) =>
+  (node as any).importKind === "type" ||
+  node.specifiers.every((specifier) => (specifier as any).importKind === "type")
 
 const createDevFileMatcher = memoize(Picomatch)
 
 // const cachedMatchers = new WeakMap<string[], Picomatch.Matcher>()
 
-const getDependencyNames = pMemoize(async (cwd: string) => {
-  const { packages } = await getPackages(cwd ?? process.cwd())
+let packageCache: Record<"deps" | "devDeps", string[]> | null = null
+const getDependencyNames = memoize((cwd: string) => {
+  if (packageCache != null) return packageCache
 
-  return {
-    deps: new Set<string>(
-      packages
-        .flatMap((pkg) => Object.keys(pkg.packageJson.dependencies ?? {}))
-        .filter((dep) => !dep.startsWith("@types/")),
-    ),
-    devDeps: new Set<string>(
-      packages
-        .flatMap((pkg) => Object.keys(pkg.packageJson.devDependencies ?? {}))
-        .filter((dep) => !dep.startsWith("@types/")),
-    ),
+  const { packages } = getPackagesSync(cwd ?? process.cwd())
+
+  packageCache = {
+    deps: [
+      ...new Set<string>(
+        packages
+          .flatMap((pkg) => Object.keys(pkg.packageJson.dependencies ?? {}))
+          .filter((dep) => !dep.startsWith("@types/")),
+      ),
+    ],
+    devDeps: [
+      ...new Set<string>(
+        packages
+          .flatMap((pkg) => Object.keys(pkg.packageJson.devDependencies ?? {}))
+          .filter((dep) => !dep.startsWith("@types/")),
+      ),
+    ],
   }
+
+  return packageCache
 })
 
 type Options = [
@@ -46,9 +59,8 @@ export const noUndefinedDependencies: Rule.RuleModule = {
       recommended: true,
     },
     messages: {
-      notFound: "This dependency was not found in any dependency manifests.",
-      devDep:
-        "This development dependency can only be imported from development-only files.",
+      notFound: "`{{ specifier }}` was not found in any production dependency manifests.",
+      devDep: "`{{ specifier }}` can only be imported from development-only files.",
     },
   },
 
@@ -69,7 +81,7 @@ export const noUndefinedDependencies: Rule.RuleModule = {
 
   create(context) {
     const options = (
-      context.options.length !== 0 ? context.options : defaultOptions
+      context.options.length > 0 ? context.options : defaultOptions
     ) as Options
     const isDevFile =
       options[0].devDependencies != null
@@ -81,25 +93,25 @@ export const noUndefinedDependencies: Rule.RuleModule = {
         const specifier = node.source.value as string
         if (specifier.startsWith(".")) return
 
-        const { deps, devDeps } = await getDependencyNames(context.cwd)
+        const { deps, devDeps } = getDependencyNames(context.cwd)
 
-        if (!deps.has(specifier)) {
+        if (deps.includes(specifier) || onlyImportsTypes(node)) return
+
+        if (devDeps.includes(specifier) && !isDevFile?.(context.filename)) {
           return context.report({
-            node: node.source,
-            messageId: "notFound",
+            messageId: "devDep",
+            data: { specifier },
+            node,
+            loc: node.source.loc!,
           })
         }
 
-        if (
-          !specifier.startsWith("@types/") &&
-          isDevFile?.(context.filename) &&
-          !devDeps.has(specifier)
-        ) {
-          context.report({
-            node,
-            messageId: "devDep",
-          })
-        }
+        context.report({
+          messageId: "notFound",
+          data: { specifier },
+          node,
+          loc: node.source.loc!,
+        })
       },
     }
   },

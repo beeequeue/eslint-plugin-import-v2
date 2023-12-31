@@ -12,30 +12,26 @@ const createDevFileMatcher = memoize(Picomatch)
 
 // const cachedMatchers = new WeakMap<string[], Picomatch.Matcher>()
 
-let packageCache: Record<"deps" | "devDeps", string[]> | null = null
+let packageCache: Record<"deps" | "devDeps", Set<string>> | null = null
 const getDependencyNames = memoize((cwd: string) => {
   if (packageCache != null) return packageCache
 
   const { packages } = getPackagesSync(cwd ?? process.cwd())
 
   packageCache = {
-    deps: [
-      ...new Set<string>(
-        packages
-          .flatMap((pkg) => [
-            ...Object.keys(pkg.packageJson.dependencies ?? {}),
-            ...Object.keys(pkg.packageJson.peerDependencies ?? {}),
-          ])
-          .filter((dep) => !dep.startsWith("@types/")),
-      ),
-    ],
-    devDeps: [
-      ...new Set<string>(
-        packages
-          .flatMap((pkg) => Object.keys(pkg.packageJson.devDependencies ?? {}))
-          .filter((dep) => !dep.startsWith("@types/")),
-      ),
-    ],
+    deps: new Set<string>(
+      packages
+        .flatMap((pkg) => [
+          ...Object.keys(pkg.packageJson.dependencies ?? {}),
+          ...Object.keys(pkg.packageJson.peerDependencies ?? {}),
+        ])
+        .filter((dep) => !dep.startsWith("@types/")),
+    ),
+    devDeps: new Set<string>(
+      packages
+        .flatMap((pkg) => Object.keys(pkg.packageJson.devDependencies ?? {}))
+        .filter((dep) => !dep.startsWith("@types/")),
+    ),
   }
 
   return packageCache
@@ -97,8 +93,10 @@ export const noUndefinedDependencies: Rule.RuleModule = {
         if (specifier.startsWith(".")) return
 
         const { deps, devDeps } = getDependencyNames(context.cwd)
+        const isDep = deps.has(specifier)
+        const isDevDep = devDeps.has(specifier)
 
-        if (devDeps.includes(specifier) && !deps.includes(specifier)) {
+        if (isDevDep && !isDep) {
           if (isDevFile?.(context.filename)) return
 
           return context.report({
@@ -109,7 +107,7 @@ export const noUndefinedDependencies: Rule.RuleModule = {
           })
         }
 
-        if (deps.includes(specifier) || onlyImportsTypes(node)) return
+        if (isDep || onlyImportsTypes(node)) return
 
         context.report({
           messageId: "notFound",

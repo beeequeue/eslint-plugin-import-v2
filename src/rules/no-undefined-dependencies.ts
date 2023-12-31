@@ -22,7 +22,10 @@ const getDependencyNames = memoize((cwd: string) => {
     deps: [
       ...new Set<string>(
         packages
-          .flatMap((pkg) => Object.keys(pkg.packageJson.dependencies ?? {}))
+          .flatMap((pkg) => [
+            ...Object.keys(pkg.packageJson.dependencies ?? {}),
+            ...Object.keys(pkg.packageJson.peerDependencies ?? {}),
+          ])
           .filter((dep) => !dep.startsWith("@types/")),
       ),
     ],
@@ -95,9 +98,9 @@ export const noUndefinedDependencies: Rule.RuleModule = {
 
         const { deps, devDeps } = getDependencyNames(context.cwd)
 
-        if (deps.includes(specifier) || onlyImportsTypes(node)) return
+        if (devDeps.includes(specifier) && !deps.includes(specifier)) {
+          if (isDevFile?.(context.filename)) return
 
-        if (devDeps.includes(specifier) && !isDevFile?.(context.filename)) {
           return context.report({
             messageId: "devDep",
             data: { specifier },
@@ -105,6 +108,8 @@ export const noUndefinedDependencies: Rule.RuleModule = {
             loc: node.source.loc!,
           })
         }
+
+        if (deps.includes(specifier) || onlyImportsTypes(node)) return
 
         context.report({
           messageId: "notFound",

@@ -7,6 +7,8 @@ import memoize from "memoize"
 import Picomatch from "picomatch"
 import { getPackagesSync } from "@manypkg/get-packages"
 
+import { getDependencyName } from "../utils.js"
+
 const onlyImportsTypes = (node: ImportDeclaration) =>
   (node as any).importKind === "type" ||
   node.specifiers.every((specifier) => (specifier as any).importKind === "type")
@@ -95,14 +97,16 @@ export const noUndefinedDependencies: Rule.RuleModule = {
 
     return {
       async ImportDeclaration(node) {
-        const specifier = node.source.value as string
         if (
-          specifier.startsWith(".") ||
-          specifier.startsWith("node:") ||
-          builtins.includes(specifier)
+          (node.source.value as string).startsWith(".") ||
+          (node.source.value as string).startsWith("/") ||
+          (node.source.value as string).startsWith("node:") ||
+          builtins.includes(node.source.value as string)
         ) {
           return
         }
+
+        const specifier = getDependencyName(node.source.value as string)
 
         const { deps, devDeps } = getDependencyNames(context.cwd)
         const isDep = deps.has(specifier)

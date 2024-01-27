@@ -1,8 +1,11 @@
+import process from "node:process"
+
+import builtins from "builtin-modules"
 import { type Rule } from "eslint"
+import type { ImportDeclaration } from "estree"
 import memoize from "memoize"
 import Picomatch from "picomatch"
 import { getPackagesSync } from "@manypkg/get-packages"
-import type { ImportDeclaration } from "estree"
 
 const onlyImportsTypes = (node: ImportDeclaration) =>
   (node as any).importKind === "type" ||
@@ -10,28 +13,29 @@ const onlyImportsTypes = (node: ImportDeclaration) =>
 
 const createDevFileMatcher = memoize(Picomatch)
 
-// const cachedMatchers = new WeakMap<string[], Picomatch.Matcher>()
-
 let packageCache: Record<"deps" | "devDeps", Set<string>> | null = null
 const getDependencyNames = memoize((cwd: string) => {
   if (packageCache != null) return packageCache
 
-  const { packages } = getPackagesSync(cwd ?? process.cwd())
+  const { packages, rootPackage } = getPackagesSync(cwd ?? process.cwd())
 
   packageCache = {
-    deps: new Set<string>(
-      packages
+    deps: new Set<string>([
+      ...Object.keys(rootPackage?.packageJson.dependencies ?? {}),
+      ...Object.keys(rootPackage?.packageJson.peerDependencies ?? {}),
+      ...packages
         .flatMap((pkg) => [
           ...Object.keys(pkg.packageJson.dependencies ?? {}),
           ...Object.keys(pkg.packageJson.peerDependencies ?? {}),
         ])
         .filter((dep) => !dep.startsWith("@types/")),
-    ),
-    devDeps: new Set<string>(
-      packages
+    ]),
+    devDeps: new Set<string>([
+      ...Object.keys(rootPackage?.packageJson.devDependencies ?? {}),
+      ...packages
         .flatMap((pkg) => Object.keys(pkg.packageJson.devDependencies ?? {}))
         .filter((dep) => !dep.startsWith("@types/")),
-    ),
+    ]),
   }
 
   return packageCache
@@ -39,7 +43,7 @@ const getDependencyNames = memoize((cwd: string) => {
 
 type Options = [
   {
-    devDependencies?: string[]
+    devDependencies?: string[] | boolean
   },
 ]
 
@@ -69,7 +73,7 @@ export const noUndefinedDependencies: Rule.RuleModule = {
       properties: {
         devDependencies: {
           type: "array",
-          items: { type: "string" },
+          items: { oneOf: [{ type: "string" }, { type: "boolean" }] },
           description:
             "Where development dependencies are allowed to be imported from. Defaults to tests and Storybook files.",
         },
@@ -84,13 +88,21 @@ export const noUndefinedDependencies: Rule.RuleModule = {
     ) as Options
     const isDevFile =
       options[0].devDependencies != null
-        ? createDevFileMatcher(options[0].devDependencies)
+        ? !Array.isArray(options[0].devDependencies)
+          ? () => options[0].devDependencies
+          : createDevFileMatcher(options[0].devDependencies)
         : null
 
     return {
       async ImportDeclaration(node) {
         const specifier = node.source.value as string
-        if (specifier.startsWith(".")) return
+        if (
+          specifier.startsWith(".") ||
+          specifier.startsWith("node:") ||
+          builtins.includes(specifier)
+        ) {
+          return
+        }
 
         const { deps, devDeps } = getDependencyNames(context.cwd)
         const isDep = deps.has(specifier)

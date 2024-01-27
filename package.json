@@ -5,7 +5,7 @@
   "author": "BeeeQueue <adam@haglund.dev>",
   "license": "MIT",
   "private": true,
-  "packageManager": "pnpm@8.13.1",
+  "packageManager": "pnpm@8.14.3",
   "engines": {
     "node": "^20"
   },
@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@manypkg/get-packages": "2.2.0",
+    "builtin-modules": "3.3.0",
     "memoize": "10.0.0",
     "picomatch": "3.0.1"
   },

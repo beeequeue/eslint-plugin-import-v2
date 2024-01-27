@@ -8,6 +8,9 @@ dependencies:
   '@manypkg/get-packages':
     specifier: 2.2.0
     version: 2.2.0
+  builtin-modules:
+    specifier: 3.3.0
+    version: 3.3.0
   memoize:
     specifier: 10.0.0
     version: 10.0.0
@@ -898,6 +901,11 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       fill-range: 7.0.1
+
+  /builtin-modules@3.3.0:
+    resolution: {integrity: sha512-zhaCDicdLuWN5UbN5IMnFqNMhNfo919sH85y2/ea+5Yg9TsTkeZxpL+JLbp6cgYFS4sRLp3YV4S6yDuqVWHYOw==}
+    engines: {node: '>=6'}
+    dev: false
 
   /bundle-require@4.0.2(esbuild@0.19.11):
     resolution: {integrity: sha512-jwzPOChofl67PSTW2SGubV9HBQAhhR2i6nskiOThauo9dzwDUgOWQScFVaJkjEfYX+UXiD+LEx8EblQMc2wIag==}

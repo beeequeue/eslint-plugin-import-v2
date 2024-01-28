@@ -7,7 +7,7 @@ import equal from "fast-deep-equal"
 const getSource = (declaration: ImportDeclaration) =>
   (declaration.source as SimpleLiteral).value as string
 
-const types = [
+const importTypes = [
   {
     name: "node",
     predicate: (declaration: ImportDeclaration) =>
@@ -19,41 +19,56 @@ const types = [
     name: "external",
     predicate: (declaration: ImportDeclaration) =>
       // not from "../foo.js", "./foo.js"
-      getSource(declaration)[0] !== "." ||
-      // from "@foo/bar"
-      (getSource(declaration)[0] === "@" && getSource(declaration)[1] !== "/"),
+      getSource(declaration)[0] !== "." &&
+      // not from "@foo/bar"
+      getSource(declaration)[0] !== "@" &&
+      getSource(declaration)[1] !== "/",
     weight: 1,
+  },
+  {
+    name: "external-scoped",
+    predicate: (declaration: ImportDeclaration) =>
+      // from "@foo/bar"
+      getSource(declaration)[0] === "@" && getSource(declaration)[1] !== "/",
+    weight: 2,
+  },
+  {
+    name: "internal-aliased",
+    predicate: (declaration: ImportDeclaration) =>
+      // from "@/foo/bar", "~/foo/bar"
+      getSource(declaration)[1] === "/" &&
+      (getSource(declaration)[0] === "@" || getSource(declaration)[0] === "~"),
+    weight: 3,
   },
   {
     name: "internal",
     predicate: (declaration: ImportDeclaration) =>
       // from "../foo.js"
-      (getSource(declaration)[0] === "." && getSource(declaration)[1] === ".") ||
-      // from "@/foo/bar", "~/foo/bar"
-      (getSource(declaration)[1] === "/" &&
-        (getSource(declaration)[0] === "@" || getSource(declaration)[0] === "~")),
-    weight: 2,
+      getSource(declaration)[0] === "." && getSource(declaration)[1] === ".",
+    weight: 4,
   },
   {
     name: "adjacent",
     predicate: (declaration: ImportDeclaration) =>
       // from "./foo.js"
       getSource(declaration)[0] === "." && getSource(declaration)[1] === "/",
-    weight: 3,
+    weight: 5,
   },
 ] as const
 
 type SourceWithWeight = {
   source: string
-  weight: (typeof types)[number]["weight"]
+  weight: (typeof importTypes)[number]["weight"]
+  range: [number, number]
 }
 
 const getWeight = memoize((declaration: ImportDeclaration): SourceWithWeight => {
-  for (const type of types) {
+  for (const type of importTypes) {
     if (type.predicate(declaration)) {
       return {
         source: getSource(declaration),
         weight: type.weight,
+        range: declaration.range!,
       }
     }
   }
@@ -61,6 +76,7 @@ const getWeight = memoize((declaration: ImportDeclaration): SourceWithWeight => 
   return {
     source: getSource(declaration),
     weight: 100 as never,
+    range: declaration.range!,
   }
 })
 
@@ -91,11 +107,10 @@ const getImportDeclarations = (program: Program): ImportDeclaration[] => {
   return importDeclarations
 }
 
-type Options = []
-
 export const order: Rule.RuleModule = {
   meta: {
     type: "problem",
+    fixable: "code",
     docs: {
       description: "Enforces the ordering of import statements.",
       recommended: true,
@@ -108,8 +123,6 @@ export const order: Rule.RuleModule = {
   schema: [],
 
   create(context) {
-    const options = context.options as Options
-
     return {
       ["Program:exit"](node) {
         const importDeclarations = getImportDeclarations(node)
@@ -128,6 +141,28 @@ export const order: Rule.RuleModule = {
         context.report({
           loc: importDeclarations[0].loc!,
           messageId: "badOrder",
+          fix: (fixer) => [
+            fixer.removeRange([
+              importDeclarations[0].range![0],
+              importDeclarations.at(-1)!.range![1],
+            ]),
+            fixer.insertTextBefore(
+              node,
+              properlySorted
+                .map(
+                  ({ weight, range }, index) =>
+                    context.sourceCode.getText({
+                      type: "ImportDeclaration",
+                      range,
+                    } as never) +
+                    (properlySorted[index + 1] != null &&
+                    properlySorted[index + 1]?.weight !== weight
+                      ? "\n"
+                      : ""),
+                )
+                .join("\n"),
+            ),
+          ],
         })
       },
     }

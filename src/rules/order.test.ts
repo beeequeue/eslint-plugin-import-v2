@@ -7,7 +7,7 @@ const ruleWithDefaults = { ...order }
 
 const errors = [{ messageId: Object.keys(order.meta!.messages!)[0] }]
 
-ruleTester.run("import-order", ruleWithDefaults, {
+ruleTester.run("order", ruleWithDefaults, {
   valid: [
     {
       name: "one (node, alphabetical)",
@@ -15,6 +15,8 @@ ruleTester.run("import-order", ruleWithDefaults, {
         import assert from "node:assert"
         import fs from "node:fs"
         import http2 from "node:http2"
+        
+        console.log("test")
       `,
     },
     {
@@ -33,9 +35,12 @@ ruleTester.run("import-order", ruleWithDefaults, {
         
         import { foo } from "@/foo"
         import { bar } from "~/bar"
-        import { biz } from "../biz"
         
-        import { baz } from "./baz"
+        import { biz } from "../biz.js"
+        
+        import { baz } from "./baz.js"
+        
+        console.log("test")
       `,
     },
     {
@@ -52,6 +57,8 @@ ruleTester.run("import-order", ruleWithDefaults, {
         import { GCloud } from "../lib/gcloud/index.js"
         import { initQueue, QUEUE_NAME } from "../lib/rabbitmq.js"
         import { splitIntoLines, unwrapPromise } from "../utils.js"
+        
+        console.log("test")
       `,
     },
   ],
@@ -62,8 +69,17 @@ ruleTester.run("import-order", ruleWithDefaults, {
         import fs from "node:fs"
         import assert from "node:assert"
         import http2 from "node:http2"
+        
+        console.log("test")
       `,
       errors,
+      output: dedent`
+        import assert from "node:assert"
+        import fs from "node:fs"
+        import http2 from "node:http2"
+        
+        console.log("test")
+      `,
     },
     {
       name: "one",
@@ -79,8 +95,26 @@ ruleTester.run("import-order", ruleWithDefaults, {
         import { biz } from "../biz"
         
         import { baz } from "./baz"
+        
+        console.log("test")
       `,
       errors,
+      output: dedent`
+        import assert from "node:assert"
+        import fs from "node:fs"
+        import http2 from "node:http2"
+        
+        import { expect } from "vitest"
+        
+        import { foo } from "@/foo"
+        import { bar } from "~/bar"
+        
+        import { biz } from "../biz"
+        
+        import { baz } from "./baz"
+        
+        console.log("test")
+      `,
     },
     {
       name: "two",
@@ -96,8 +130,26 @@ ruleTester.run("import-order", ruleWithDefaults, {
         import { bar } from "~/bar"
         
         import { baz } from "./baz"
+        
+        console.log("test")
       `,
       errors,
+      output: dedent`
+        import assert from "node:assert"
+        import fs from "node:fs"
+        import http2 from "node:http2"
+        
+        import { expect } from "vitest"
+        
+        import { foo } from "@/foo"
+        import { bar } from "~/bar"
+        
+        import { biz } from "../biz"
+        
+        import { baz } from "./baz"
+        
+        console.log("test")
+      `,
     },
     {
       name: "three",
@@ -106,8 +158,20 @@ ruleTester.run("import-order", ruleWithDefaults, {
         import { biz } from "../biz"
         import { foo } from "@/foo"
         import { bar } from "~/bar"
+        
+        console.log("test")
       `,
       errors,
+      output: dedent`
+        import { foo } from "@/foo"
+        import { bar } from "~/bar"
+        
+        import { biz } from "../biz"
+        
+        import { baz } from "./baz"
+        
+        console.log("test")
+      `,
     },
     {
       name: "four",
@@ -120,8 +184,24 @@ ruleTester.run("import-order", ruleWithDefaults, {
         import assert from "node:assert"
         import fs from "node:fs"
         import http2 from "node:http2"
+        
+        console.log("test")
       `,
       errors,
+      output: dedent`
+        import assert from "node:assert"
+        import fs from "node:fs"
+        import http2 from "node:http2"
+
+        import { foo } from "@/foo"
+        import { bar } from "~/bar"
+        
+        import { biz } from "../biz"
+        
+        import { baz } from "./baz"
+        
+        console.log("test")
+      `,
     },
   ],
 })

@@ -5,7 +5,7 @@
   "author": "BeeeQueue <adam@haglund.dev>",
   "license": "MIT",
   "private": true,
-  "packageManager": "pnpm@8.14.3",
+  "packageManager": "pnpm@8.15.0",
   "engines": {
     "node": "^20"
   },
@@ -47,22 +47,22 @@
   "devDependencies": {
     "@tsconfig/node20": "20.1.2",
     "@tsconfig/strictest": "2.0.2",
-    "@types/eslint": "8.56.0",
+    "@types/eslint": "8.56.2",
     "@types/estree": "1.0.5",
-    "@types/node": "20.10.6",
+    "@types/node": "20.11.9",
     "@types/picomatch": "2.3.3",
-    "@typescript-eslint/parser": "6.16.0",
-    "@typescript-eslint/rule-tester": "6.16.0",
-    "dotenv": "16.3.1",
-    "eslint": "9.0.0-alpha.0",
+    "@typescript-eslint/parser": "6.19.1",
+    "@typescript-eslint/rule-tester": "6.19.1",
+    "dotenv": "16.4.1",
+    "eslint": "9.0.0-alpha.2",
     "eslint-define-config": "2.1.0",
     "lint-staged": "15.2.0",
-    "oxlint": "0.0.22",
-    "prettier": "3.1.1",
+    "oxlint": "0.2.6",
+    "prettier": "3.2.4",
     "simple-git-hooks": "2.9.0",
     "ts-dedent": "2.2.0",
     "tsup": "8.0.1",
     "typescript": "5.3.3",
-    "vitest": "1.1.0"
+    "vitest": "1.2.2"
   }
 }

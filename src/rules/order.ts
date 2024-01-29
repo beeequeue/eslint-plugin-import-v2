@@ -137,8 +137,11 @@ export const order: Rule.RuleModule = {
         if (equal(weights, properlySorted)) return
 
         context.report({
-          loc: importDeclarations[0].loc!,
           messageId: "badOrder",
+          loc: {
+            start: importDeclarations[0].loc!.start,
+            end: importDeclarations.at(-1)!.loc!.end,
+          },
           fix: (fixer) => [
             fixer.removeRange([
               importDeclarations[0].range![0],

@@ -16,21 +16,20 @@ export const noDefaultExport: Rule.RuleModule = {
     messages: {
       noDefaultExport: "Default exports are not allowed.",
     },
-  },
-
-  schema: [
-    {
-      type: "object",
-      properties: {
-        includeConfigFiles: {
-          type: "boolean",
-          description:
-            "Include config files that usually require using default exports, e.g. `vite.config.ts`",
+    schema: [
+      {
+        type: "object",
+        properties: {
+          includeConfigFiles: {
+            type: "boolean",
+            description:
+              "Include config files that usually require using default exports, e.g. `vite.config.ts`",
+          },
         },
+        additionalProperties: false,
       },
-      additionalProperties: false,
-    },
-  ],
+    ],
+  },
 
   create(context) {
     const options = context.options as Options

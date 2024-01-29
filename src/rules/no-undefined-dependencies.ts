@@ -67,22 +67,26 @@ export const noUndefinedDependencies: Rule.RuleModule = {
       notFound: "`{{ specifier }}` was not found in any production dependency manifests.",
       devDep: "`{{ specifier }}` can only be imported from development-only files.",
     },
-  },
-
-  schema: [
-    {
-      type: "object",
-      properties: {
-        devDependencies: {
-          type: "array",
-          items: { oneOf: [{ type: "string" }, { type: "boolean" }] },
-          description:
-            "Where development dependencies are allowed to be imported from. Defaults to tests and Storybook files.",
+    schema: [
+      {
+        type: "object",
+        properties: {
+          devDependencies: {
+            oneOf: [
+              { type: "boolean" },
+              {
+                type: "array",
+                items: { type: "string" },
+                description:
+                  "Where development dependencies are allowed to be imported from. Defaults to tests and Storybook files.",
+              },
+            ],
+          },
         },
+        additionalProperties: false,
       },
-      additionalProperties: false,
-    },
-  ],
+    ],
+  },
 
   create(context) {
     const options = (

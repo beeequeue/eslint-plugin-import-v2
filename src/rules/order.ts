@@ -120,8 +120,6 @@ export const order: Rule.RuleModule = {
     },
   },
 
-  schema: [],
-
   create(context) {
     return {
       ["Program:exit"](node) {

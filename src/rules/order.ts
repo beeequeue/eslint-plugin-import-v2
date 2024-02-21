@@ -1,7 +1,6 @@
 import builtins from "builtin-modules"
-import memoize from "memoize"
 import type { Rule } from "eslint"
-import type { ImportDeclaration, Program } from "estree"
+import type { Comment, ImportDeclaration, Program } from "estree"
 import equal from "fast-deep-equal"
 
 const importTypes = [
@@ -54,10 +53,10 @@ const importTypes = [
 type SourceWithWeight = {
   source: string
   weight: (typeof importTypes)[number]["weight"]
-  range: [number, number]
+  originalIndex: number
 }
 
-const getWeight = memoize((declaration: ImportDeclaration): SourceWithWeight => {
+const getWeight = (declaration: ImportDeclaration, index: number): SourceWithWeight => {
   const source = declaration.source.value as string
 
   for (const type of importTypes) {
@@ -65,7 +64,7 @@ const getWeight = memoize((declaration: ImportDeclaration): SourceWithWeight => 
       return {
         source: source,
         weight: type.weight,
-        range: declaration.range!,
+        originalIndex: index,
       }
     }
   }
@@ -73,12 +72,19 @@ const getWeight = memoize((declaration: ImportDeclaration): SourceWithWeight => 
   return {
     source: source,
     weight: 100 as never,
-    range: declaration.range!,
+    originalIndex: index,
   }
-})
+}
 
-const getImportDeclarations = (program: Program): ImportDeclaration[] => {
-  const importDeclarations: ImportDeclaration[] = []
+type ImportDeclarationWithComments = ImportDeclaration & {
+  comments: Comment[]
+}
+
+const getImportDeclarations = (
+  context: Rule.RuleContext,
+  program: Program,
+): ImportDeclarationWithComments[] => {
+  const importDeclarations: ImportDeclarationWithComments[] = []
 
   let foundImportDeclaration = false
   // for instead of forof for performance
@@ -98,7 +104,10 @@ const getImportDeclarations = (program: Program): ImportDeclaration[] => {
       foundImportDeclaration = true
     }
 
-    importDeclarations.push(child)
+    importDeclarations.push({
+      ...child,
+      comments: context.sourceCode.getCommentsBefore(child),
+    })
   }
 
   return importDeclarations
@@ -120,7 +129,7 @@ export const order: Rule.RuleModule = {
   create(context) {
     return {
       ["Program:exit"](node) {
-        const importDeclarations = getImportDeclarations(node)
+        const importDeclarations = getImportDeclarations(context, node)
 
         const weights = importDeclarations.map(getWeight)
         const properlySorted = weights.toSorted((a, b) => {
@@ -141,23 +150,35 @@ export const order: Rule.RuleModule = {
           },
           fix: (fixer) => [
             fixer.removeRange([
-              importDeclarations[0].range![0],
+              importDeclarations[0].comments?.[0]?.range?.[0] ??
+                importDeclarations[0].range![0],
               importDeclarations.at(-1)!.range![1],
             ]),
-            fixer.insertTextBefore(
-              node,
+            fixer.insertTextBeforeRange(
+              importDeclarations[0].comments?.[0]?.range ?? importDeclarations[0].range!,
               properlySorted
-                .map(
-                  ({ weight, range }, index) =>
-                    context.sourceCode.getText({
-                      type: "ImportDeclaration",
-                      range,
-                    } as never) +
-                    (properlySorted[index + 1] != null &&
+                .map(({ weight, originalIndex }, index) => {
+                  const originalDeclaration = importDeclarations[originalIndex]
+                  let sourceCode = context.sourceCode.getText(originalDeclaration)
+
+                  if (
+                    properlySorted[index + 1] != null &&
                     properlySorted[index + 1]?.weight !== weight
-                      ? "\n"
-                      : ""),
-                )
+                  ) {
+                    sourceCode += "\n"
+                  }
+
+                  if (originalDeclaration.comments.length !== 0) {
+                    sourceCode =
+                      originalDeclaration.comments
+                        .map((comment) => context.sourceCode.getText(comment))
+                        .join("\n") +
+                      "\n" +
+                      sourceCode
+                  }
+
+                  return sourceCode
+                })
                 .join("\n"),
             ),
           ],

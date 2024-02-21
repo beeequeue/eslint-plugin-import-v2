@@ -81,7 +81,7 @@ const getImportDeclarations = (program: Program): ImportDeclaration[] => {
   const importDeclarations: ImportDeclaration[] = []
 
   let foundImportDeclaration = false
-  // for instead of forof for performance & `break`
+  // for instead of forof for performance
   for (let i = 0; i < program.body.length; i++) {
     const child = program.body[i]
     if (child.type !== "ImportDeclaration") {

@@ -54,7 +54,7 @@
     "@types/node": "20.11.19",
     "@types/picomatch": "2.3.3",
     "dotenv": "16.4.5",
-    "eslint": "9.0.0-alpha.2",
+    "eslint": "9.0.0-beta.0",
     "eslint-define-config": "2.1.0",
     "lint-staged": "15.2.2",
     "oxlint": "0.2.10",

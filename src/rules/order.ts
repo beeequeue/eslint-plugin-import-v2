@@ -1,57 +1,52 @@
 import builtins from "builtin-modules"
 import memoize from "memoize"
 import type { Rule } from "eslint"
-import type { ImportDeclaration, Program, SimpleLiteral } from "estree"
+import type { ImportDeclaration, Program } from "estree"
 import equal from "fast-deep-equal"
-
-const getSource = (declaration: ImportDeclaration) =>
-  (declaration.source as SimpleLiteral).value as string
 
 const importTypes = [
   {
     name: "node",
-    predicate: (declaration: ImportDeclaration) =>
-      getSource(declaration).startsWith("node:") ||
-      builtins.includes(getSource(declaration)),
+    predicate: (source: string) =>
+      source.startsWith("node:") || builtins.includes(source),
     weight: 0,
   },
   {
     name: "external",
-    predicate: (declaration: ImportDeclaration) =>
+    predicate: (source: string) =>
       // not from "../foo.js", "./foo.js"
-      getSource(declaration)[0] !== "." &&
+      source[0] !== "." &&
       // not from "@foo/bar"
-      getSource(declaration)[0] !== "@" &&
-      getSource(declaration)[1] !== "/",
+      source[0] !== "@" &&
+      source[1] !== "/",
     weight: 1,
   },
   {
     name: "external-scoped",
-    predicate: (declaration: ImportDeclaration) =>
+    predicate: (source: string) =>
       // from "@foo/bar"
-      getSource(declaration)[0] === "@" && getSource(declaration)[1] !== "/",
+      source[0] === "@" && source[1] !== "/",
     weight: 2,
   },
   {
     name: "internal-aliased",
-    predicate: (declaration: ImportDeclaration) =>
+    predicate: (source: string) =>
       // from "@/foo/bar", "~/foo/bar"
-      getSource(declaration)[1] === "/" &&
-      (getSource(declaration)[0] === "@" || getSource(declaration)[0] === "~"),
+      source[1] === "/" && (source[0] === "@" || source[0] === "~"),
     weight: 3,
   },
   {
     name: "internal",
-    predicate: (declaration: ImportDeclaration) =>
+    predicate: (source: string) =>
       // from "../foo.js"
-      getSource(declaration)[0] === "." && getSource(declaration)[1] === ".",
+      source[0] === "." && source[1] === ".",
     weight: 4,
   },
   {
     name: "adjacent",
-    predicate: (declaration: ImportDeclaration) =>
+    predicate: (source: string) =>
       // from "./foo.js"
-      getSource(declaration)[0] === "." && getSource(declaration)[1] === "/",
+      source[0] === "." && source[1] === "/",
     weight: 5,
   },
 ] as const
@@ -63,10 +58,12 @@ type SourceWithWeight = {
 }
 
 const getWeight = memoize((declaration: ImportDeclaration): SourceWithWeight => {
+  const source = declaration.source.value as string
+
   for (const type of importTypes) {
-    if (type.predicate(declaration)) {
+    if (type.predicate(source)) {
       return {
-        source: getSource(declaration),
+        source: source,
         weight: type.weight,
         range: declaration.range!,
       }
@@ -74,7 +71,7 @@ const getWeight = memoize((declaration: ImportDeclaration): SourceWithWeight => 
   }
 
   return {
-    source: getSource(declaration),
+    source: source,
     weight: 100 as never,
     range: declaration.range!,
   }

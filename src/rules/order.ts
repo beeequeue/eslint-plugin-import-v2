@@ -133,10 +133,10 @@ export const order: Rule.RuleModule = {
 
         const weights = importDeclarations.map(getWeight)
         const properlySorted = weights.toSorted((a, b) => {
-          if (a.weight === b.weight) {
-            return a.source.localeCompare(b.source, "en-US")
-          } else {
+          if (a.weight !== b.weight) {
             return a.weight - b.weight
+          } else {
+            return a.source.localeCompare(b.source, "en-US")
           }
         })
 

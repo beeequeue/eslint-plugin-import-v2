@@ -3,8 +3,8 @@
   "type": "module",
   "version": "0.0.0",
   "author": "BeeeQueue <adam@haglund.dev>",
+  "repository": "https://github.com/BeeeQueue/eslint-plugin-import-v2.git",
   "license": "MIT",
-  "private": true,
   "packageManager": "pnpm@8.15.3",
   "engines": {
     "node": "^20"
@@ -77,5 +77,8 @@
       "object.fromentries": "npm:@nolyfill/object.fromentries@latest",
       "object.values": "npm:@nolyfill/object.values@latest"
     }
+  },
+  "publishConfig": {
+    "tag": "next"
   }
 }

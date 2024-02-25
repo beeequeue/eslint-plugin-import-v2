@@ -61,6 +61,16 @@ ruleTester.run("order", ruleWithDefaults, {
         console.log("test")
       `,
     },
+    {
+      name: "comments eslint disable",
+      code: dedent`
+        /* eslint-disable-next-line */
+        import { baz } from "./baz"
+        import { biz } from "../biz"
+
+        console.log("test")
+      `,
+    },
   ],
   invalid: [
     {
@@ -204,27 +214,6 @@ ruleTester.run("order", ruleWithDefaults, {
       `,
     },
     {
-      name: "comments eslint disable",
-      code: dedent`
-        /* eslint-disable-next-line */
-
-        import { baz } from "./baz"
-        import { biz } from "../biz"
-
-        console.log("test")
-      `,
-      errors,
-      output: dedent`
-        /* eslint-disable-next-line */
-
-        import { biz } from "../biz"
-
-        import { baz } from "./baz"
-
-        console.log("test")
-      `,
-    },
-    {
       name: "comments",
       code: dedent`
         // comment about baz
@@ -269,6 +258,58 @@ ruleTester.run("order", ruleWithDefaults, {
         /***
          * comment about baz 
          */
+        import { baz } from "./baz"
+
+        console.log("test")
+      `,
+    },
+    {
+      name: "newlines",
+      code: dedent`
+        import assert from "node:assert"
+        import fs from "node:fs"
+        import http2 from "node:http2"
+        import { foo } from "@/foo"
+        import { bar } from "~/bar"
+        import { biz } from "../biz"
+        import { baz } from "./baz"
+
+        console.log("test")
+      `,
+      errors,
+      output: dedent`
+        import assert from "node:assert"
+        import fs from "node:fs"
+        import http2 from "node:http2"
+
+        import { foo } from "@/foo"
+        import { bar } from "~/bar"
+
+        import { biz } from "../biz"
+
+        import { baz } from "./baz"
+
+        console.log("test")
+      `,
+    },
+    {
+      name: "newlines short",
+      code: dedent`
+        import { biz } from "node:assert"
+        import { biz } from "../biz"
+
+
+
+        import { baz } from "./baz"
+
+        console.log("test")
+      `,
+      errors,
+      output: dedent`
+        import { biz } from "node:assert"
+        
+        import { biz } from "../biz"
+
         import { baz } from "./baz"
 
         console.log("test")

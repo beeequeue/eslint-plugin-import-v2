@@ -50,13 +50,22 @@ const importTypes = [
   },
 ] as const
 
+type ImportDeclarationWithComments = ImportDeclaration & {
+  newLinesBefore: number
+  comments: Comment[]
+}
+
 type SourceWithWeight = {
   source: string
   weight: (typeof importTypes)[number]["weight"]
+  newLinesBefore: number
   originalIndex: number
 }
 
-const getWeight = (declaration: ImportDeclaration, index: number): SourceWithWeight => {
+const getWeight = (
+  declaration: ImportDeclarationWithComments,
+  index: number,
+): SourceWithWeight => {
   const source = declaration.source.value as string
 
   for (const type of importTypes) {
@@ -64,6 +73,7 @@ const getWeight = (declaration: ImportDeclaration, index: number): SourceWithWei
       return {
         source: source,
         weight: type.weight,
+        newLinesBefore: declaration.newLinesBefore,
         originalIndex: index,
       }
     }
@@ -72,12 +82,9 @@ const getWeight = (declaration: ImportDeclaration, index: number): SourceWithWei
   return {
     source: source,
     weight: 100 as never,
+    newLinesBefore: declaration.newLinesBefore,
     originalIndex: index,
   }
-}
-
-type ImportDeclarationWithComments = ImportDeclaration & {
-  comments: Comment[]
 }
 
 const getImportDeclarations = (
@@ -104,8 +111,12 @@ const getImportDeclarations = (
       foundImportDeclaration = true
     }
 
+    const newLinesBefore =
+      child.loc!.start.line - 1 - (importDeclarations.at(-1)?.loc!.end.line ?? 0)
+
     importDeclarations.push({
       ...child,
+      newLinesBefore,
       comments: context.sourceCode.getCommentsBefore(child),
     })
   }
@@ -132,13 +143,23 @@ export const order: Rule.RuleModule = {
         const importDeclarations = getImportDeclarations(context, node)
 
         const weights = importDeclarations.map(getWeight)
-        const properlySorted = weights.toSorted((a, b) => {
-          if (a.weight !== b.weight) {
-            return a.weight - b.weight
-          } else {
-            return a.source.localeCompare(b.source, "en-US")
-          }
-        })
+        const properlySorted = weights
+          .toSorted((a, b) => {
+            if (a.weight !== b.weight) {
+              return a.weight - b.weight
+            } else {
+              return a.source.localeCompare(b.source, "en-US")
+            }
+          })
+          // Set newLinesBefore to correct value based on sections
+          .map((value, index, array) => {
+            const previous = array[index - 1]
+
+            return {
+              ...value,
+              newLinesBefore: previous != null && previous.weight !== value.weight ? 1 : 0,
+            }
+          })
 
         if (equal(weights, properlySorted)) return
 

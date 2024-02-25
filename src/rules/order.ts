@@ -105,7 +105,12 @@ const getImportDeclarations = (
       }
     }
 
-    if (child.specifiers.length === 0) continue
+    if (
+      child.specifiers.length === 0 &&
+      !context.sourceCode.getText(child).includes("from")
+    ) {
+      continue
+    }
 
     if (!foundImportDeclaration) {
       foundImportDeclaration = true
@@ -157,7 +162,8 @@ export const order: Rule.RuleModule = {
 
             return {
               ...value,
-              newLinesBefore: previous != null && previous.weight !== value.weight ? 1 : 0,
+              newLinesBefore:
+                previous != null && previous.weight !== value.weight ? 1 : 0,
             }
           })
 

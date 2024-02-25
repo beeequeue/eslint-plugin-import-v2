@@ -71,6 +71,19 @@ ruleTester.run("order", ruleWithDefaults, {
         console.log("test")
       `,
     },
+    {
+      name: "empty imports",
+      code: dedent`
+        import assert from "node:assert"
+        import {} from "node:fs"
+        import http2 from "node:http2"
+
+        import { foo } from "../baz"
+        import {} from "../biz"
+
+        console.log("test")
+      `,
+    },
   ],
   invalid: [
     {
@@ -311,6 +324,37 @@ ruleTester.run("order", ruleWithDefaults, {
         import { biz } from "../biz"
 
         import { baz } from "./baz"
+
+        console.log("test")
+      `,
+    },
+    {
+      only: true,
+      name: "empty imports",
+      code: dedent`
+        import {} from "node:fs"
+        import assert from "node:assert"
+        
+        import http2 from "node:http2"
+
+        import { foo } from "../baz"
+        
+        import {} from "../biz"
+        
+        import "test"
+
+        console.log("test")
+      `,
+      errors,
+      output: dedent`
+        import assert from "node:assert"
+        import {} from "node:fs"
+        import http2 from "node:http2"
+
+        import { foo } from "../baz"
+        import {} from "../biz"
+        
+        import "test"
 
         console.log("test")
       `,

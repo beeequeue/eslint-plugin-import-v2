@@ -18,4 +18,4 @@ Benchmarks:
 Install sizes:
 
 - `eslint-plugin-import`: 5.38MB
-- `eslint-plugin-import-v2`: 245.93KB
+- `eslint-plugin-import-v2`: 245.93KB (-95.43%)

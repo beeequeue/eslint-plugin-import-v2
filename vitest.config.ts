@@ -13,5 +13,9 @@ export default defineConfig({
     env: {
       GIT_SHA: JSON.stringify(gitSha),
     },
+
+    benchmark: {
+      reporters: "verbose",
+    },
   },
 })

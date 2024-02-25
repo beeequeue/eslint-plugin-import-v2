@@ -6,7 +6,7 @@ import { name, version } from "./package.json"
 const gitSha = execSync("git rev-parse --short HEAD").toString().trim()
 
 export default defineConfig({
-  entry: ["src/**/*.ts", "!**/*.test.*", "!src/test-utils.ts"],
+  entry: ["src/index.ts", "!**/*.{bench,test}.*", "!src/test-utils.ts"],
   outDir: "dist",
 
   define: {
@@ -31,8 +31,11 @@ export default defineConfig({
       "object-rest-spread": false,
     }
   },
+  banner: {
+    js: "import {createRequire} from 'module';const require=createRequire(import.meta.url);",
+  },
 
-  bundle: false,
+  bundle: true,
   dts: true,
   clean: true,
   minify: true,

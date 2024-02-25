@@ -329,7 +329,6 @@ ruleTester.run("order", ruleWithDefaults, {
       `,
     },
     {
-      only: true,
       name: "empty imports",
       code: dedent`
         import {} from "node:fs"

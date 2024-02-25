@@ -56,7 +56,36 @@ describe("order", () => {
     overrideConfig: [
       {
         plugins: { import: imp },
-        rules: { "import/order": "error" },
+        rules: {
+          "import/order": [
+            "error",
+            {
+              alphabetize: { order: "asc" },
+              groups: [
+                "builtin",
+                ["external", "unknown"],
+                "internal",
+                "parent",
+                ["sibling", "index"],
+                "object",
+              ],
+              pathGroups: [
+                {
+                  pattern: "@/**/*",
+                  group: "parent",
+                  position: "before",
+                },
+                {
+                  pattern: "@*/**/*",
+                  group: "external",
+                  position: "after",
+                },
+              ],
+              pathGroupsExcludedImportTypes: ["builtin"],
+              "newlines-between": "always",
+            },
+          ],
+        },
       },
     ],
   })
@@ -80,7 +109,7 @@ describe("order", () => {
         await v1.lintText(file)
       }
     },
-    { warmupIterations: 50 },
+    { warmupIterations: 50, iterations: 500 },
   )
 
   bench(
@@ -90,6 +119,6 @@ describe("order", () => {
         await v2.lintText(file)
       }
     },
-    { warmupIterations: 50 },
+    { warmupIterations: 50, iterations: 1000 },
   )
 })

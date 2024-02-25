@@ -82,7 +82,7 @@ describe("no-undefined-dependencies", () => {
         await v1.lintText(file)
       }
     },
-    { warmupIterations: 50 },
+    { warmupIterations: 50, iterations: 500 },
   )
 
   bench(
@@ -92,6 +92,6 @@ describe("no-undefined-dependencies", () => {
         await v2.lintText(file)
       }
     },
-    { warmupIterations: 50 },
+    { warmupIterations: 50, iterations: 1000 },
   )
 })

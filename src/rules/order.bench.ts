@@ -1,9 +1,10 @@
 import { ESLint } from "eslint"
-import { bench, describe } from "vitest"
 // @ts-expect-error: Missing types
 import imp from "eslint-plugin-import"
-import imp2 from "../../dist/index"
 import dedent from "ts-dedent"
+import { bench, describe } from "vitest"
+// @ts-ignore: Missing types
+import imp2 from "../../dist/index"
 
 const files = [
   dedent`

@@ -198,7 +198,7 @@ export const order: Rule.RuleModule = {
                   if (originalDeclaration.comments.length !== 0) {
                     sourceCode =
                       originalDeclaration.comments
-                        .map((comment) => context.sourceCode.getText(comment))
+                        .map((comment) => context.sourceCode.getText(comment as never))
                         .join("\n") +
                       "\n" +
                       sourceCode

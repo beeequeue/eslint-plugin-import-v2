@@ -64,18 +64,6 @@
     "typescript-eslint": "7.0.2",
     "vitest": "1.3.1"
   },
-  "pnpm": {
-    "overrides": {
-      "array.prototype.findlastindex": "npm:@nolyfill/array.prototype.findlastindex@latest",
-      "hasown": "npm:@nolyfill/hasown@latest",
-      "object.groupby": "npm:@nolyfill/object.groupby@latest",
-      "array-includes": "npm:@nolyfill/array-includes@latest",
-      "array.prototype.flat": "npm:@nolyfill/array.prototype.flat@latest",
-      "array.prototype.flatmap": "npm:@nolyfill/array.prototype.flatmap@latest",
-      "object.fromentries": "npm:@nolyfill/object.fromentries@latest",
-      "object.values": "npm:@nolyfill/object.values@latest"
-    }
-  },
   "publishConfig": {
     "tag": "next"
   }

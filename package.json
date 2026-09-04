@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@manypkg/get-packages": "2.2.0",
-    "@tsconfig/node20": "20.1.2",
+    "@tsconfig/node22": "22.0.0",
     "@tsconfig/strictest": "2.0.3",
     "@types/eslint": "8.56.3",
     "@types/estree": "1.0.5",
